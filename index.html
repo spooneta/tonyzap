@@ -1112,7 +1112,10 @@
                 const out = [];
                 while (words.length) {
                     const r = Math.random();
-                    const n = r < 0.3 ? 1 : r < 0.8 ? 2 : 3;
+                    let n = r < 0.3 ? 1 : r < 0.8 ? 2 : 3;
+                    // frase nova sempre começa numa linha nova
+                    const fim = words.findIndex(w => /[.!?]$/.test(w));
+                    if (fim >= 0 && fim < n) n = fim + 1;
                     const chunk = words.splice(0, n).join(' ');
                     out.push(chunk.charAt(0).toUpperCase() + chunk.slice(1));
                 }
@@ -1126,6 +1129,16 @@
             const wordIdx = tokens.map((t, i) => (t && !/^\s+$/.test(t) ? i : -1)).filter(i => i >= 0);
             const w = wordIdx.length;
             if (!w) return sentence;
+
+            // Às vezes o Tony só solta um "aiw" no começo ou um "retardado" no fim, sem loucura
+            const modo = Math.random();
+            if (modo < 0.15) {
+                const resto = body.charAt(0).toLowerCase() + body.slice(1);
+                return lead + 'Aiw, ' + resto + punct + trail;
+            }
+            if (modo < 0.30) {
+                return lead + body.replace(/[,;:]$/, '') + ', retardado' + punct + trail;
+            }
 
             // 1 garantida + caos que cresce mais rápido que o tamanho da frase
             const n = Math.min(w, 1 + Math.floor(Math.pow(w / 9, 1.3)));
@@ -1436,9 +1449,12 @@
             const alt = [...variants].sort((a, b) => b.length - a.length).map(escapeRe).join('|');
             const combo = `(?:${alt})(?:,\\s*além disso\\s+(?:${alt})\\s+e\\s+(?:${alt}))?`;
             // ", loucura," no meio some inteira; ", loucura" antes da pontuação também
-            t = t.replace(new RegExp(`,\\s*${combo}\\s*,`, 'gi'), '');
+            t = t.replace(new RegExp(`,\\s*${combo}\\s*,(?!\\s*além disso)`, 'gi'), '');
             t = t.replace(new RegExp(`,?\\s*${combo}(?=\\s*(?:[.!?]|$|\\n))`, 'gim'), '');
             t = t.replace(new RegExp(`\\s*${combo},?`, 'gi'), '');
+            // "Aiw, " no começo da frase e ", retardado" no fim
+            t = t.replace(/(^|[.!?]\s+|\n)aiw,?\s+(\S)/gi, (m, pre, c) => pre + c.toUpperCase());
+            t = t.replace(/,?\s*retardado(?=\s*(?:[.!?]|$|\n))/gim, '');
             return t;
         }
 
