@@ -695,7 +695,7 @@
                 <span class="bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
                 Transmissão Imperial
             </span>
-            <h1 class="rise" style="--i:1">MiGuXeiToR<span class="marks">© ® ™</span></h1>
+            <h1 class="rise" style="--i:1"><span id="brandName">Tonyzês</span><span class="marks">© ® ™</span></h1>
             <p class="lede rise" style="--i:2">Escreva em português correto. A frota devolve em miguxês, no dialeto que você escolher.</p>
         </header>
 
@@ -718,7 +718,7 @@
                     <div class="pane pane-out" id="outPane">
                         <div class="pane-head">
                             <div class="pane-title">
-                                <span>Miguxês</span>
+                                <span id="outTitle">Tonyzês</span>
                                 <span class="dialect" id="dialectLabel"></span>
                             </div>
                         </div>
@@ -1301,6 +1301,9 @@
             channels.forEach(c => c.setAttribute('aria-pressed', String(c.dataset.level === String(level))));
             consoleEl.classList.toggle('mode-tony', level === 'tony');
             dialectLabel.textContent = dialects[level];
+            // Título da caixa: Tonyzês para o Tony, Miguxês para os outros dialetos
+            document.getElementById('outTitle').textContent = level === 'tony' ? 'Tonyzês' : 'Miguxês';
+            document.getElementById('brandName').textContent = level === 'tony' ? 'Tonyzês' : 'MiGuXeiToR';
 
             if (!input.value.trim()) {
                 showState('is-error', 'ph-warning', 'ERRO: Insira dados na interface primária, rebelde.');
@@ -1314,6 +1317,8 @@
             channels.forEach(c => c.setAttribute('aria-pressed', 'false'));
             consoleEl.classList.remove('mode-tony');
             dialectLabel.textContent = '';
+            document.getElementById('outTitle').textContent = 'Tonyzês';
+            document.getElementById('brandName').textContent = 'Tonyzês';
             showState('is-empty', 'ph-broadcast', 'Escolha um dialeto abaixo para decodificar a transmissão.');
         }
 
