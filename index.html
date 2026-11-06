@@ -399,7 +399,7 @@
         @media (min-width: 768px) { .channel { padding: 18px 20px; } }
         /* Tony ocupa a linha inteira em cima; os 3 dialetos ficam lado a lado embaixo */
         .channel { border-left: 1px solid var(--line); }
-        .channel.tony + .channel { border-left: 0; }
+        .tony-bar + .channel { border-left: 0; }
 
         .channel .glyph {
             grid-row: span 2;
@@ -479,18 +479,89 @@
         .channel[aria-pressed="true"] .era { color: #f4b8b9; }
 
         /* Tony MCL: canal verde */
-        .channel.tony {
+        /* Barra verde: Tony MCL + TonyZator (áudio) + Copiar, com a fumaça por trás de tudo */
+        .tony-bar {
             grid-column: 1 / -1;
-            border-left: 0;
+            position: relative;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            grid-template-areas: "tony tony" "tts tools";
             border-bottom: 1px solid var(--line);
-            column-gap: 16px;
-            padding: 20px 18px;
             background: linear-gradient(180deg, rgba(47, 210, 122, 0.06), rgba(47, 210, 122, 0.16));
             overflow: hidden;
             isolation: isolate;
         }
         @media (min-width: 768px) {
+            .tony-bar { grid-template-columns: 1fr 1fr; grid-template-areas: "tony tts"; }
+        }
+        .channel.tony {
+            grid-area: tony;
+            border-left: 0;
+            column-gap: 16px;
+            padding: 20px 18px;
+            background: transparent;
+            z-index: 1;
+        }
+        @media (min-width: 768px) {
             .channel.tony { column-gap: 22px; padding: 30px 32px; }
+        }
+        .channel.tts {
+            grid-area: tts;
+            border-top: 1px solid rgba(47, 210, 122, 0.25);
+            padding: 12px 18px;
+        }
+        @media (min-width: 768px) {
+            .channel.tts { border-top: 0; border-left: 1px solid rgba(47, 210, 122, 0.25); padding: 30px 32px; }
+        }
+        .channel.tts:disabled { cursor: default; }
+        .channel.tts:disabled .glyph, .channel.tts:disabled .name, .channel.tts:disabled .era { opacity: 0.45; }
+        .channel.tts.is-loading .glyph i { animation: spin 1s linear infinite; }
+
+        .bar-tools {
+            grid-area: tools;
+            position: relative;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0 18px 0 0;
+            border-top: 1px solid rgba(47, 210, 122, 0.25);
+        }
+        @media (min-width: 768px) {
+            .bar-tools { position: absolute; top: 10px; right: 12px; padding: 0; border-top: 0; }
+        }
+        .bar-tools kbd {
+            display: none;
+            font-family: var(--mono);
+            font-size: 10px;
+            color: var(--tony);
+            border: 1px solid var(--tony-line);
+            border-radius: 3px;
+            padding: 0 4px;
+        }
+        @media (min-width: 1024px) { .bar-tools kbd { display: block; } }
+        .bar-copy {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            height: 32px;
+            padding: 0 10px;
+            border: 1px solid var(--tony-line);
+            border-radius: var(--radius);
+            background: rgba(4, 19, 10, 0.45);
+            color: var(--tony);
+            font: 500 12px var(--font);
+            cursor: pointer;
+            transition: border-color .2s var(--ease), background-color .2s var(--ease), transform .15s var(--ease);
+        }
+        .bar-copy i { font-size: 15px; }
+        .bar-copy:hover { border-color: var(--tony); background: rgba(47, 210, 122, 0.14); }
+        .bar-copy:active { transform: scale(0.97); }
+        .bar-copy:disabled { opacity: 0.4; pointer-events: none; }
+        .bar-copy .short { display: none; }
+        @media (max-width: 767px) {
+            .bar-copy .long { display: none; }
+            .bar-copy .short { display: inline; }
         }
         /* Carro-chefe: tudo maior */
         .channel.tony .glyph { width: 52px; height: 52px; font-size: 26px; }
@@ -503,10 +574,14 @@
         }
         .channel.tony .era { font-size: 12px; margin-top: 4px; }
         @media (min-width: 768px) { .channel.tony .era { font-size: 13px; } }
-        .channel.tony .smoke span { width: 90px; height: 90px; bottom: -50px; filter: blur(9px); }
-        .channel.tony:hover { background: linear-gradient(180deg, rgba(47, 210, 122, 0.1), rgba(47, 210, 122, 0.22)); }
-        .channel.tony .glyph, .channel.tony .name, .channel.tony .era, .channel.tony kbd { position: relative; z-index: 1; }
-        .channel.tony kbd { position: absolute; color: var(--tony); border-color: var(--tony-line); }
+        /* TonyZator menor no celular */
+        @media (max-width: 767px) {
+            .channel.tts .glyph { width: 36px; height: 36px; font-size: 18px; }
+            .channel.tts .name { font-size: 16px; }
+            .channel.tts .era { font-size: 11px; margin-top: 2px; }
+        }
+        .tony-bar .smoke span { width: 90px; height: 90px; bottom: -50px; filter: blur(9px); }
+        .channel.tony:hover { background: rgba(47, 210, 122, 0.07); }
         .channel.tony::before { z-index: 2; }
 
         /* Fumacinha subindo pelo botão inteiro */
@@ -601,6 +676,8 @@
         }
         @media (max-width: 520px) {
             .actions { display: grid; grid-template-columns: 1fr 1fr; }
+            /* celular: os dois botões do Zap lado a lado, Apagar tudo embaixo na largura toda */
+            #resetBtn { order: 1; grid-column: 1 / -1; }
             .action { padding: 0 10px; font-size: 13px; }
         }
 
@@ -752,7 +829,7 @@
                 </div>
 
                 <div class="channels" role="group" aria-label="Dialetos">
-                    <button class="channel tony" type="button" data-level="tony" aria-pressed="false">
+                    <div class="tony-bar">
                         <span class="smoke" aria-hidden="true">
                             <span style="--x:2%;  --d:4.2s; --delay:0s;   --drift:10px"></span>
                             <span style="--x:16%; --d:5s;   --delay:1.3s; --drift:-8px"></span>
@@ -762,11 +839,21 @@
                             <span style="--x:72%; --d:5.2s; --delay:1.9s; --drift:-10px"></span>
                             <span style="--x:86%; --d:4.8s; --delay:2.8s; --drift:12px"></span>
                         </span>
-                        <span class="glyph"><i class="ph ph-fire"></i></span>
-                        <span class="name">Tony MCL</span>
-                        <span class="era">Digite igual um nóia</span>
-                        <kbd>4</kbd>
-                    </button>
+                        <button class="channel tony" type="button" data-level="tony" aria-pressed="false">
+                            <span class="glyph"><i class="ph ph-fire"></i></span>
+                            <span class="name">Tony MCL</span>
+                            <span class="era">Digite igual um nóia</span>
+                        </button>
+                        <button class="channel tony tts" id="audioBtn" type="button" disabled>
+                            <span class="glyph"><i class="ph ph-speaker-high"></i></span>
+                            <span class="name">TonyZator</span>
+                            <span class="era">Fale igual um nóia</span>
+                        </button>
+                        <div class="bar-tools">
+                            <button class="bar-copy" id="copyBtn" type="button" disabled><i class="ph ph-copy"></i><span class="long">Copiar tradução</span><span class="short">Copiar</span></button>
+                            <kbd>4</kbd>
+                        </div>
+                    </div>
                     <button class="channel" type="button" data-level="1" aria-pressed="false">
                         <span class="glyph"><i class="ph ph-flower"></i></span>
                         <span class="name">Miguxês Arcaico</span>
@@ -790,10 +877,8 @@
 
             <div class="actions rise" style="--i:4">
                 <button class="action" id="resetBtn" type="button"><i class="ph ph-arrow-counter-clockwise"></i>Apagar tudo</button>
-                <button class="action" id="audioBtn" type="button" disabled><i class="ph ph-speaker-high"></i><span>Gerar áudio</span></button>
                 <button class="action zap" id="zapTextBtn" type="button" disabled><i class="ph ph-whatsapp-logo"></i>Texto no Zap</button>
                 <button class="action zap" id="zapAudioBtn" type="button" disabled><i class="ph ph-whatsapp-logo"></i>Áudio no Zap</button>
-                <button class="action primary" id="copyBtn" type="button" disabled><i class="ph ph-copy"></i>Copiar tradução</button>
             </div>
         </main>
 
@@ -1267,7 +1352,7 @@
         const zapAudioBtn = document.getElementById('zapAudioBtn');
         const audioBar = document.getElementById('audioBar');
         const player = document.getElementById('player');
-        const channels = [...document.querySelectorAll('.channel')];
+        const channels = [...document.querySelectorAll('.channel[data-level]')];
 
         // Voz gerada pela API do TonyZator (ElevenLabs), cópia na conta sabor-uvas. Limite de 500 caracteres por áudio.
         const TTS_URL = 'https://tonyzator-voz.netlify.app/api/tts';
@@ -1412,9 +1497,9 @@
                 showToast(`O áudio aceita até ${TTS_MAX} caracteres. Esse texto tem ${text.length}.`);
                 return;
             }
-            const label = audioBtn.querySelector('span');
+            const label = audioBtn.querySelector('.name');
             audioBtn.classList.add('is-loading');
-            audioBtn.querySelector('i').className = 'ph ph-circle-notch';
+            audioBtn.querySelector('.glyph i').className = 'ph ph-circle-notch';
             label.textContent = 'Gerando...';
             updateShareButtons();
             try {
@@ -1437,8 +1522,8 @@
                 showToast(err instanceof TypeError ? 'Não deu para falar com o gerador de áudio agora.' : err.message);
             } finally {
                 audioBtn.classList.remove('is-loading');
-                audioBtn.querySelector('i').className = 'ph ph-speaker-high';
-                label.textContent = 'Gerar áudio';
+                audioBtn.querySelector('.glyph i').className = 'ph ph-speaker-high';
+                label.textContent = 'TonyZator';
                 updateShareButtons();
             }
         }
