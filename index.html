@@ -1,0 +1,1372 @@
+<!DOCTYPE html>
+<!--
+    MiGuXeiToR © ® ™ - Imperial Edition
+
+    Regras de tradução portadas do MiGuXeiToR original de Aurelio Jargas (2007):
+    https://aurelio.net/coisinha/miguxeitor
+    (licença do original: usar o código exige link para o original - link no rodapé)
+
+    Tema escuro fixo: o visual "espaço profundo" é a identidade da página.
+-->
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#07070a">
+    <meta name="description" content="Tradutor de português para miguxês, em três dialetos históricos da internet brasileira.">
+    <title>MiGuXeiToR © ® ™ - Imperial Edition</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@400;500&family=Orbitron:wght@600;800;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
+
+    <style>
+        :root {
+            --bg: #07070a;
+            --surface: #0e0e12;
+            --surface-2: #14141a;
+            --line: #23232b;
+            --line-strong: #34343f;
+            --text: #ececf1;
+            --text-2: #a3a3b0;
+            --text-3: #8a8a98;
+            --accent: #e5383b;
+            --accent-soft: rgba(229, 56, 59, 0.14);
+            --accent-line: rgba(229, 56, 59, 0.45);
+            --tony: #2fd27a;
+            --tony-soft: rgba(47, 210, 122, 0.12);
+            --tony-line: rgba(47, 210, 122, 0.45);
+            --radius: 6px;
+            --ease: cubic-bezier(0.16, 1, 0.3, 1);
+            --font: 'Geist', system-ui, sans-serif;
+            --mono: 'Geist Mono', ui-monospace, monospace;
+            --display: 'Orbitron', var(--font);
+        }
+
+        * { box-sizing: border-box; }
+        html, body { margin: 0; }
+
+        body {
+            min-height: 100dvh;
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font);
+            font-size: 16px;
+            line-height: 1.5;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        ::selection { background: var(--accent); color: #fff; }
+
+        /* ---------- Camadas de fundo ---------- */
+        #stars {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .station {
+            position: fixed;
+            top: -14vmin;
+            right: -12vmin;
+            width: 58vmin;
+            max-width: 560px;
+            min-width: 260px;
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .vignette {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            background:
+                radial-gradient(120% 80% at 50% 110%, rgba(229, 56, 59, 0.08), transparent 60%),
+                radial-gradient(90% 70% at 50% 50%, transparent 40%, rgba(7, 7, 10, 0.85) 100%);
+        }
+
+        .grain {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            opacity: 0.05;
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+        }
+
+        /* Container que cobre a tela para a nave voar dentro */
+        .tie-fighter-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none; /* Garante que a nave não atrapalhe cliques no site */
+            z-index: 9999; /* Deixa a nave por cima de todo o conteúdo */
+            overflow: hidden;
+        }
+
+        /* Animação do trajeto (cruzando a tela) */
+        @keyframes flyAcross {
+            0% { transform: translateX(-150px) translateY(20vh) scale(0.8) rotate(15deg); }
+            100% { transform: translateX(110vw) translateY(-10vh) scale(0.4) rotate(-10deg); }
+        }
+
+        /* Aplicação da animação na nave */
+        .tie-fighter {
+            position: absolute;
+            transform: translateX(-150px) translateY(20vh);
+            /* Mude o "12s" para mais ou menos se quiser alterar a velocidade do voo */
+            animation: flyAcross 12s linear infinite;
+        }
+
+        /* Tamanho do SVG e efeito de sombra brilhante vermelha */
+        .tie-fighter-svg {
+            display: block;
+            width: 80px;
+            height: 80px;
+            filter: drop-shadow(0 0 10px rgba(220, 38, 38, 0.5));
+        }
+
+        /* Animação piscante da "janela" (olho vermelho) */
+        @keyframes pulse-red {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+        .window-pulse {
+            animation: pulse-red 2s infinite;
+        }
+
+        /* Quem pediu menos animação no sistema não vê a nave */
+        @media (prefers-reduced-motion: reduce) {
+            .tie-fighter-container { display: none; }
+        }
+
+        /* ---------- Layout ---------- */
+        .shell {
+            position: relative;
+            width: 100%;
+            max-width: 1180px;
+            margin: 0 auto;
+            padding: 0 16px;
+            display: flex;
+            flex-direction: column;
+            min-height: 100dvh;
+        }
+        @media (min-width: 768px) { .shell { padding: 0 32px; } }
+
+        /* ---------- Cabeçalho ---------- */
+        .intro {
+            padding: 56px 0 28px;
+            display: grid;
+            gap: 14px;
+        }
+        @media (min-width: 768px) { .intro { padding: 88px 0 36px; } }
+
+        .signal {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-family: var(--mono);
+            font-size: 12px;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            color: var(--accent);
+        }
+        .signal .bars { display: inline-flex; gap: 2px; align-items: flex-end; height: 12px; }
+        .signal .bars i {
+            display: block;
+            width: 3px;
+            background: var(--accent);
+            border-radius: 1px;
+        }
+        .signal .bars i:nth-child(1) { height: 4px; }
+        .signal .bars i:nth-child(2) { height: 7px; }
+        .signal .bars i:nth-child(3) { height: 10px; }
+        .signal .bars i:nth-child(4) { height: 12px; opacity: 0.35; }
+        @media (prefers-reduced-motion: no-preference) {
+            .signal .bars i:nth-child(4) { animation: blink 2.4s steps(1) infinite; }
+        }
+        @keyframes blink { 50% { opacity: 1; } }
+
+        h1 {
+            margin: 0;
+            font-family: var(--display);
+            font-weight: 900;
+            font-size: clamp(2rem, 7vw, 4.75rem);
+            line-height: 1;
+            letter-spacing: 0.01em;
+            color: var(--text);
+            text-shadow: 0 0 40px rgba(229, 56, 59, 0.25);
+        }
+        h1 .marks {
+            font-family: var(--font);
+            font-weight: 300;
+            font-size: 0.42em;
+            vertical-align: 0.95em;
+            margin-left: 0.25em;
+            color: var(--text-3);
+            letter-spacing: 0.1em;
+            text-shadow: none;
+        }
+
+        .lede {
+            margin: 0;
+            max-width: 46ch;
+            color: var(--text-2);
+            font-size: clamp(0.95rem, 1.6vw, 1.125rem);
+        }
+
+        /* ---------- Console ---------- */
+        .console {
+            position: relative;
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            background: linear-gradient(180deg, rgba(20, 20, 26, 0.82), rgba(12, 12, 16, 0.88));
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.05),
+                0 40px 80px -30px rgba(0, 0, 0, 0.9);
+        }
+
+        .panes {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .pane {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+        .pane + .pane { border-left: 1px solid var(--line); }
+
+        .pane-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            min-height: 48px;
+            padding: 8px 10px 8px 14px;
+            border-bottom: 1px solid var(--line);
+        }
+        @media (min-width: 768px) { .pane-head { padding: 10px 12px 10px 20px; } }
+
+        .pane-title {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+            min-width: 0;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text);
+        }
+        .pane-title .dialect {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--accent);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        @media (max-width: 520px) { .pane-title .dialect { display: none; } }
+
+        .tools { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+
+        .icon-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            height: 32px;
+            min-width: 32px;
+            padding: 0 8px;
+            border: 1px solid transparent;
+            border-radius: var(--radius);
+            background: transparent;
+            color: var(--text-2);
+            font: 500 12px var(--font);
+            cursor: pointer;
+            transition: color .2s var(--ease), background-color .2s var(--ease), border-color .2s var(--ease), transform .15s var(--ease);
+        }
+        .icon-btn i { font-size: 16px; }
+        .icon-btn:hover { color: var(--text); background: var(--surface-2); border-color: var(--line); }
+        .icon-btn:active { transform: scale(0.96); }
+        .icon-btn:disabled { opacity: 0.35; pointer-events: none; }
+        .icon-btn .label { display: none; }
+        @media (min-width: 768px) { .icon-btn .label { display: inline; } }
+
+        .count {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--text-3);
+            padding: 0 6px;
+        }
+        @media (max-width: 520px) { .count { display: none; } }
+
+        .field {
+            position: relative;
+            flex: 1;
+        }
+
+        textarea, .output {
+            display: block;
+            width: 100%;
+            height: clamp(220px, 42vh, 380px);
+            margin: 0;
+            padding: 14px;
+            border: 0;
+            background: transparent;
+            color: var(--text);
+            font-family: var(--mono);
+            font-size: 13px;
+            line-height: 1.7;
+            resize: none;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+        }
+        @media (min-width: 768px) {
+            textarea, .output { padding: 20px; font-size: 14px; }
+        }
+        /* iOS dá zoom automático em campos com fonte < 16px */
+        @media (max-width: 767px) {
+            textarea, .output { padding: 12px; font-size: 16px; line-height: 1.55; }
+        }
+        textarea::placeholder { color: var(--text-2); transition: color .15s var(--ease); }
+        /* Ao clicar na caixa, o texto de instrução some */
+        textarea:focus::placeholder { color: transparent; }
+        textarea:focus { outline: none; }
+        .pane:focus-within .pane-head { border-bottom-color: var(--line-strong); }
+
+        .output { color: #f4b8b9; }
+        /* Mensagens da caixa da direita usam a mesma fonte, tamanho e posição da caixa da esquerda */
+        .output .empty {
+            font: inherit;
+            color: var(--text-2);
+        }
+        .output .empty i { display: none; }
+        .output.is-empty, .output.is-error { white-space: normal; }
+        .output.is-error .empty { color: var(--accent); }
+        .output.is-error .empty i { color: var(--accent); }
+
+        /* scanline durante decodificação */
+        .pane-out .field::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            opacity: 0;
+            pointer-events: none;
+        }
+        @media (prefers-reduced-motion: no-preference) {
+            .pane-out.decoding .field::after { animation: scan .7s var(--ease); }
+        }
+        @keyframes scan {
+            0% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(clamp(220px, 42vh, 380px)); }
+        }
+
+        /* ---------- Canais (dialetos) ---------- */
+        .channels {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            border-top: 1px solid var(--line);
+        }
+
+        .channel {
+            position: relative;
+            display: grid;
+            grid-template-columns: auto 1fr;
+            align-items: center;
+            column-gap: 12px;
+            padding: 14px;
+            border: 0;
+            background: transparent;
+            color: var(--text-2);
+            text-align: left;
+            cursor: pointer;
+            transition: background-color .25s var(--ease), color .25s var(--ease);
+        }
+        @media (min-width: 768px) { .channel { padding: 18px 20px; } }
+        /* Tony ocupa a linha inteira em cima; os 3 dialetos ficam lado a lado embaixo */
+        .channel { border-left: 1px solid var(--line); }
+        .channel.tony + .channel { border-left: 0; }
+
+        .channel .glyph {
+            grid-row: span 2;
+            display: grid;
+            place-items: center;
+            width: 36px;
+            height: 36px;
+            border: 1px solid var(--line-strong);
+            border-radius: var(--radius);
+            font-size: 18px;
+            color: var(--text-2);
+            transition: border-color .25s var(--ease), color .25s var(--ease), background-color .25s var(--ease), transform .3s var(--ease);
+        }
+        .channel { min-width: 0; }
+        .channel .name {
+            min-width: 0;
+            font-family: var(--display);
+            font-weight: 800;
+            font-size: 10px;
+            line-height: 1.3;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--text);
+        }
+        /* Celular: dialetos pequenos com ícone em cima do nome */
+        @media (max-width: 520px) {
+            .channel:not(.tony) {
+                grid-template-columns: 1fr;
+                justify-items: center;
+                row-gap: 6px;
+                padding: 12px 6px;
+                text-align: center;
+            }
+            .channel:not(.tony) .glyph { grid-row: auto; width: 30px; height: 30px; font-size: 15px; }
+        }
+        @media (min-width: 768px) { .channel .name { font-size: 12px; letter-spacing: 0.08em; white-space: nowrap; } }
+        .channel .era {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--text-3);
+        }
+        .channel kbd {
+            display: none;
+            position: absolute;
+            top: 10px;
+            right: 12px;
+            font-family: var(--mono);
+            font-size: 10px;
+            color: var(--text-3);
+            border: 1px solid var(--line);
+            border-radius: 3px;
+            padding: 0 4px;
+        }
+        @media (min-width: 1024px) {
+            .channel { padding-right: 32px; }
+            .channel kbd { display: block; }
+        }
+
+        .channel::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 2px;
+            background: var(--accent);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform .45s var(--ease);
+        }
+        .channel:hover { background: rgba(255, 255, 255, 0.02); color: var(--text); }
+        .channel:hover .glyph { border-color: var(--accent-line); color: var(--text); }
+        .channel:active .glyph { transform: scale(0.94); }
+        .channel[aria-pressed="true"] { background: var(--accent-soft); }
+        .channel[aria-pressed="true"]::before { transform: scaleX(1); }
+        .channel[aria-pressed="true"] .glyph { border-color: var(--accent); background: var(--accent); color: #fff; }
+        .channel[aria-pressed="true"] .era { color: #f4b8b9; }
+
+        /* Tony MCL: canal verde */
+        .channel.tony {
+            grid-column: 1 / -1;
+            border-left: 0;
+            border-bottom: 1px solid var(--line);
+            column-gap: 16px;
+            padding: 20px 18px;
+            background: linear-gradient(180deg, rgba(47, 210, 122, 0.06), rgba(47, 210, 122, 0.16));
+            overflow: hidden;
+            isolation: isolate;
+        }
+        @media (min-width: 768px) {
+            .channel.tony { column-gap: 22px; padding: 30px 32px; }
+        }
+        /* Carro-chefe: tudo maior */
+        .channel.tony .glyph { width: 52px; height: 52px; font-size: 26px; }
+        @media (min-width: 768px) { .channel.tony .glyph { width: 64px; height: 64px; font-size: 32px; } }
+        .channel.tony .name {
+            font-size: clamp(20px, 4vw, 32px);
+            letter-spacing: 0.06em;
+            line-height: 1.1;
+            white-space: nowrap;
+        }
+        .channel.tony .era { font-size: 12px; margin-top: 4px; }
+        @media (min-width: 768px) { .channel.tony .era { font-size: 13px; } }
+        .channel.tony .smoke span { width: 90px; height: 90px; bottom: -50px; filter: blur(9px); }
+        .channel.tony:hover { background: linear-gradient(180deg, rgba(47, 210, 122, 0.1), rgba(47, 210, 122, 0.22)); }
+        .channel.tony .glyph, .channel.tony .name, .channel.tony .era, .channel.tony kbd { position: relative; z-index: 1; }
+        .channel.tony kbd { position: absolute; color: var(--tony); border-color: var(--tony-line); }
+        .channel.tony::before { z-index: 2; }
+
+        /* Fumacinha subindo pelo botão inteiro */
+        .smoke { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
+        .smoke span {
+            position: absolute;
+            bottom: -34px;
+            left: var(--x);
+            width: 54px;
+            height: 54px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(225, 255, 235, 0.34), rgba(160, 240, 190, 0.12) 45%, transparent 70%);
+            filter: blur(7px);
+            opacity: 0;
+        }
+        @media (prefers-reduced-motion: no-preference) {
+            .smoke span { animation: puff var(--d) ease-out infinite var(--delay); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .smoke span { opacity: 0.35; bottom: 20%; }
+        }
+        @keyframes puff {
+            0%   { transform: translate(0, 0) scale(0.5); opacity: 0; }
+            15%  { opacity: 0.9; }
+            60%  { transform: translate(var(--drift), -55px) scale(1.4); opacity: 0.55; }
+            100% { transform: translate(calc(var(--drift) * 1.8), -105px) scale(2.2); opacity: 0; }
+        }
+
+        .channel.tony .glyph { border-color: var(--tony-line); color: var(--tony); }
+        .channel.tony .name { color: var(--tony); }
+        .channel.tony::before { background: var(--tony); }
+        .channel.tony:hover .glyph { border-color: var(--tony); color: var(--tony); }
+        .channel.tony[aria-pressed="true"] { background: linear-gradient(180deg, rgba(47, 210, 122, 0.16), rgba(47, 210, 122, 0.3)); }
+        .channel.tony[aria-pressed="true"] .glyph { border-color: var(--tony); background: var(--tony); color: #04130a; }
+        .channel.tony[aria-pressed="true"] .era { color: #a7f0c6; }
+        .console.mode-tony .output { color: #a7f0c6; }
+        .console.mode-tony .pane-title .dialect { color: var(--tony); }
+        .console.mode-tony .pane-out .field::after { background: linear-gradient(90deg, transparent, var(--tony), transparent); }
+
+        .channel:focus-visible, .icon-btn:focus-visible, .action:focus-visible, a:focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: -2px;
+        }
+
+        /* ---------- Ações ---------- */
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            gap: 10px;
+            padding: 20px 0 0;
+        }
+        .action {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            height: 44px;
+            padding: 0 18px;
+            border: 1px solid var(--line-strong);
+            border-radius: var(--radius);
+            background: rgba(14, 14, 18, 0.8);
+            color: var(--text);
+            font: 500 14px var(--font);
+            white-space: nowrap;
+            cursor: pointer;
+            transition: color .2s var(--ease), border-color .2s var(--ease), background-color .2s var(--ease), transform .15s var(--ease);
+        }
+        .action i { font-size: 18px; }
+        .action:hover { border-color: var(--accent-line); }
+        .action:active { transform: translateY(1px); }
+        .action:disabled { opacity: 0.4; pointer-events: none; }
+        .action.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+        .action.primary:hover { background: #cf2c2f; border-color: #cf2c2f; }
+        @media (max-width: 520px) {
+            .actions { display: grid; grid-template-columns: 1fr 1fr; }
+            .action { padding: 0 10px; font-size: 13px; }
+        }
+
+        /* ---------- Rodapé ---------- */
+        footer {
+            margin-top: auto;
+            padding: 64px 0 28px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: flex-end;
+            gap: 12px 24px;
+            font-size: 13px;
+            color: var(--text-3);
+        }
+        footer p { margin: 0; max-width: 60ch; }
+        footer a {
+            color: var(--text-2);
+            text-decoration: underline;
+            text-decoration-color: var(--line-strong);
+            text-underline-offset: 3px;
+            transition: color .2s var(--ease), text-decoration-color .2s var(--ease);
+        }
+        footer a:hover { color: var(--text); text-decoration-color: var(--accent); }
+        footer .wordmark {
+            font-family: var(--display);
+            font-weight: 800;
+            font-size: 11px;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--line-strong);
+        }
+
+        /* ---------- Toast ---------- */
+        .toast {
+            position: fixed;
+            left: 50%;
+            bottom: 24px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            border: 1px solid var(--line-strong);
+            border-radius: var(--radius);
+            background: var(--surface-2);
+            color: var(--text);
+            font-size: 13px;
+            transform: translate(-50%, 16px);
+            opacity: 0;
+            pointer-events: none;
+            transition: transform .35s var(--ease), opacity .35s var(--ease);
+        }
+        .toast i { color: var(--accent); font-size: 16px; }
+        .toast.show { transform: translate(-50%, 0); opacity: 1; }
+
+        /* ---------- Entrada ---------- */
+        @media (prefers-reduced-motion: no-preference) {
+            .rise { opacity: 0; transform: translateY(14px); animation: rise .9s var(--ease) forwards; animation-delay: calc(var(--i, 0) * 90ms + 80ms); }
+        }
+        @keyframes rise { to { opacity: 1; transform: none; } }
+
+        @media (prefers-reduced-transparency: reduce) {
+            .console { background: var(--surface); backdrop-filter: none; -webkit-backdrop-filter: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="stars" aria-hidden="true"></canvas>
+
+    <!-- Estação de batalha ao fundo -->
+    <svg class="station" viewBox="0 0 200 200" aria-hidden="true">
+        <defs>
+            <radialGradient id="sphere" cx="35%" cy="32%" r="75%">
+                <stop offset="0%" stop-color="#3a3a46"/>
+                <stop offset="55%" stop-color="#1a1a22"/>
+                <stop offset="100%" stop-color="#08080b"/>
+            </radialGradient>
+            <radialGradient id="dish" cx="40%" cy="40%" r="70%">
+                <stop offset="0%" stop-color="#22222b"/>
+                <stop offset="100%" stop-color="#0c0c10"/>
+            </radialGradient>
+            <clipPath id="clip"><circle cx="100" cy="100" r="90"/></clipPath>
+        </defs>
+        <circle cx="100" cy="100" r="90" fill="url(#sphere)"/>
+        <g clip-path="url(#clip)" stroke="#4a4a58" fill="none" opacity="0.55">
+            <path d="M 8 98 Q 100 112 192 98" stroke-width="2.5" stroke="#0a0a0d"/>
+            <path d="M 8 102 Q 100 116 192 102" stroke-width="0.6"/>
+            <path d="M 18 60 Q 100 48 182 60" stroke-width="0.5"/>
+            <path d="M 14 140 Q 100 156 186 140" stroke-width="0.5"/>
+            <path d="M 34 172 Q 100 186 166 172" stroke-width="0.5"/>
+            <path d="M 100 10 Q 86 100 100 190" stroke-width="0.4" stroke-dasharray="2 4"/>
+            <path d="M 60 18 Q 48 100 62 182" stroke-width="0.4" stroke-dasharray="2 5"/>
+            <path d="M 140 18 Q 152 100 138 182" stroke-width="0.4" stroke-dasharray="2 5"/>
+        </g>
+        <circle cx="62" cy="62" r="22" fill="url(#dish)" stroke="#4a4a58" stroke-width="0.8"/>
+        <circle cx="62" cy="62" r="13" fill="none" stroke="#3a3a46" stroke-width="0.6"/>
+        <circle cx="62" cy="62" r="2.4" fill="#e5383b" opacity="0.9"/>
+        <circle cx="100" cy="100" r="90" fill="none" stroke="#e5383b" stroke-opacity="0.12" stroke-width="1"/>
+    </svg>
+
+
+    <div class="vignette" aria-hidden="true"></div>
+    <div class="grain" aria-hidden="true"></div>
+
+    <div class="shell">
+
+        <header class="intro">
+            <span class="signal rise" style="--i:0">
+                <span class="bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+                Transmissão Imperial
+            </span>
+            <h1 class="rise" style="--i:1">MiGuXeiToR<span class="marks">© ® ™</span></h1>
+            <p class="lede rise" style="--i:2">Escreva em português correto. A frota devolve em miguxês, no dialeto que você escolher.</p>
+        </header>
+
+        <main>
+            <section class="console rise" style="--i:3" aria-label="Tradutor">
+
+                <div class="panes">
+                    <div class="pane pane-in">
+                        <div class="pane-head">
+                            <label class="pane-title" for="inputText">Português</label>
+                            <div class="tools">
+                                <span class="count" id="count">0</span>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <textarea id="inputText" spellcheck="false" placeholder="Digite aqui seu texto e aperte um botão."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="pane pane-out" id="outPane">
+                        <div class="pane-head">
+                            <div class="pane-title">
+                                <span>Miguxês</span>
+                                <span class="dialect" id="dialectLabel"></span>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <div class="output is-empty" id="outputText" role="region" aria-live="polite" aria-label="Texto traduzido" tabindex="0">
+                                <span class="empty"><i class="ph ph-broadcast"></i>Escolha um dialeto abaixo para decodificar a transmissão.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="channels" role="group" aria-label="Dialetos">
+                    <button class="channel tony" type="button" data-level="tony" aria-pressed="false">
+                        <span class="smoke" aria-hidden="true">
+                            <span style="--x:2%;  --d:4.2s; --delay:0s;   --drift:10px"></span>
+                            <span style="--x:16%; --d:5s;   --delay:1.3s; --drift:-8px"></span>
+                            <span style="--x:30%; --d:4.6s; --delay:2.4s; --drift:14px"></span>
+                            <span style="--x:44%; --d:5.4s; --delay:0.7s; --drift:-12px"></span>
+                            <span style="--x:58%; --d:4.4s; --delay:3.1s; --drift:9px"></span>
+                            <span style="--x:72%; --d:5.2s; --delay:1.9s; --drift:-10px"></span>
+                            <span style="--x:86%; --d:4.8s; --delay:2.8s; --drift:12px"></span>
+                        </span>
+                        <span class="glyph"><i class="ph ph-fire"></i></span>
+                        <span class="name">Tony MCL</span>
+                        <span class="era">Digite igual um nóia</span>
+                        <kbd>4</kbd>
+                    </button>
+                    <button class="channel" type="button" data-level="1" aria-pressed="false">
+                        <span class="glyph"><i class="ph ph-flower"></i></span>
+                        <span class="name">Miguxês Arcaico</span>
+                        <span class="era">Dialeto ICQ</span>
+                        <kbd>1</kbd>
+                    </button>
+                    <button class="channel" type="button" data-level="2" aria-pressed="false">
+                        <span class="glyph"><i class="ph ph-users"></i></span>
+                        <span class="name">Miguxês Moderno</span>
+                        <span class="era">Dialeto MSN</span>
+                        <kbd>2</kbd>
+                    </button>
+                    <button class="channel" type="button" data-level="3" aria-pressed="false">
+                        <span class="glyph"><i class="ph ph-heart"></i></span>
+                        <span class="name">Neo-Miguxês</span>
+                        <span class="era">Dialeto Orkut</span>
+                        <kbd>3</kbd>
+                    </button>
+                </div>
+            </section>
+
+            <div class="actions rise" style="--i:4">
+                <button class="action" id="resetBtn" type="button"><i class="ph ph-arrow-counter-clockwise"></i>Apagar tudo</button>
+                <button class="action primary" id="copyBtn" type="button" disabled><i class="ph ph-copy"></i>Copiar tradução</button>
+            </div>
+        </main>
+
+        <footer>
+            <p>
+                Baseado no <a href="https://aurelio.net/coisinha/miguxeitor">MiGuXeiToR © ® ™</a> original,
+                criado por <a href="https://aurelio.net">Aurelio Jargas</a> em 2007.
+            </p>
+            <span class="wordmark">Imperial Edition</span>
+        </footer>
+    </div>
+
+    <!-- Nave flutuante (TIE Fighter), por cima de todo o conteúdo -->
+    <div class="tie-fighter-container" aria-hidden="true">
+        <div class="tie-fighter">
+            <svg class="tie-fighter-svg" viewBox="0 0 100 100">
+                <!-- Painéis laterais -->
+                <rect x="20" y="10" width="10" height="80" fill="#4a5568" stroke="#1a202c" stroke-width="2" />
+                <rect x="70" y="10" width="10" height="80" fill="#4a5568" stroke="#1a202c" stroke-width="2" />
+                <!-- Braços conectores -->
+                <rect x="30" y="45" width="40" height="10" fill="#2d3748" />
+                <!-- Cabine central -->
+                <circle cx="50" cy="50" r="15" fill="#1a202c" stroke="#4a5568" stroke-width="3" />
+                <!-- Janela vermelha -->
+                <circle class="window-pulse" cx="50" cy="50" r="5" fill="#dc2626" />
+            </svg>
+        </div>
+    </div>
+
+    <div class="toast" id="toast" role="status"><i class="ph ph-check-circle"></i><span>Copiado</span></div>
+
+    <script>
+        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        /* ================= Céu estrelado ================= */
+        (function starfield() {
+            const canvas = document.getElementById('stars');
+            const ctx = canvas.getContext('2d');
+            let stars = [], w = 0, h = 0, dpr = 1;
+
+            function build() {
+                dpr = Math.min(window.devicePixelRatio || 1, 2);
+                w = window.innerWidth;
+                h = window.innerHeight;
+                canvas.width = w * dpr;
+                canvas.height = h * dpr;
+                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+                const total = Math.round((w * h) / 2600);
+                stars = Array.from({ length: total }, () => {
+                    const depth = Math.random();
+                    return {
+                        x: Math.random() * w,
+                        y: Math.random() * h,
+                        r: depth * 1.3 + 0.2,
+                        a: depth * 0.7 + 0.15,
+                        v: depth * 0.12 + 0.01,
+                        t: Math.random() * Math.PI * 2,
+                        red: Math.random() < 0.03
+                    };
+                });
+            }
+
+            function draw(time) {
+                ctx.clearRect(0, 0, w, h);
+                for (const s of stars) {
+                    if (!reduceMotion) {
+                        s.x -= s.v;
+                        if (s.x < -2) s.x = w + 2;
+                    }
+                    const tw = reduceMotion ? 1 : 0.75 + Math.sin(time / 900 + s.t) * 0.25;
+                    ctx.globalAlpha = s.a * tw;
+                    ctx.fillStyle = s.red ? '#ff8a8c' : '#e8e8f2';
+                    ctx.beginPath();
+                    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                ctx.globalAlpha = 1;
+                if (!reduceMotion) requestAnimationFrame(draw);
+            }
+
+            let resizeTimer;
+            window.addEventListener('resize', () => {
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(() => { build(); if (reduceMotion) draw(0); }, 150);
+            });
+
+            build();
+            reduceMotion ? draw(0) : requestAnimationFrame(draw);
+        })();
+
+        /* ================= Dados ================= */
+        const dialects = {
+            1:    'Dialeto ICQ',
+            2:    'Dialeto MSN',
+            3:    'Dialeto Orkut',
+            tony: 'Tony MCL'
+        };
+
+        // Cameliza as letras aleatoriamente
+        function camelize(text) {
+            return text.toLowerCase().split('')
+                .map(c => Math.random() < 0.5 ? c.toUpperCase() : c)
+                .join('');
+        }
+
+        /* ================= Tony MCL =================
+           Injeta "loucuras" nas pausas do texto.
+           - Pelo menos 1 por frase; quanto maior a frase, mais caótico.
+           - Frases guardadas sem vírgula: a pontuação é montada conforme a posição.
+           - Sorteio sem repetição (saco embaralhado) até esgotar cada categoria.
+           - Só sorteia de novo no clique do botão (ver listener de input). */
+        const tonyBank = {
+            maconha: [
+                'enquanto fumava um beck',
+                'e aproveitei pra comprar haxixe',
+                'chapado com meu concentrado de 99 milhões por cento de THC',
+                'testando minhas 15 variedades de flor',
+                'bolando um baseado'
+            ],
+            cu: [
+                'e de repente me caguei todo',
+                'detalhe: peidei molhado',
+                'e nisso soltei um peido e a esposa ficou puta',
+                'com o cu doendo'
+            ],
+            lamurias: [
+                'puto porque meu bitcoin caiu',
+                'e que depressão, meu pau não sobe',
+                'revoltado que meu iFood tá demorando',
+                'e pra piorar meu iFood tá vindo de bicicleta',
+                'lembrando que minha vida é uma merda',
+                'chorando de novo'
+            ]
+        };
+
+        function shuffle(list) {
+            for (let i = list.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [list[i], list[j]] = [list[j], list[i]];
+            }
+            return list;
+        }
+
+        // Devolve uma função que tira itens sem repetir até esvaziar, e então reembaralha
+        function makeBag(list) {
+            let bag = [];
+            return () => {
+                if (!bag.length) bag = shuffle([...list]);
+                return bag.pop();
+            };
+        }
+
+        function tonyMCL(text) {
+            const pick = {
+                maconha: makeBag(tonyBank.maconha),
+                cu: makeBag(tonyBank.cu),
+                lamurias: makeBag(tonyBank.lamurias)
+            };
+            // Tira o conector do começo para as três frases encaixarem no jackpot
+            const semE = s => s.replace(/^(e|detalhe:)\s+/i, '');
+
+            function loucura() {
+                const r = Math.random();
+                if (r < 0.30) return pick.maconha();
+                if (r < 0.60) return pick.cu();
+                if (r < 0.90) return pick.lamurias();
+                // Jackpot: as três juntas
+                return pick.maconha() + ', além disso ' + semE(pick.cu()) + ' e ' + semE(pick.lamurias());
+            }
+
+            // Cada frase termina em . ! ? (ou no fim da linha); quebras de linha ficam intactas
+            return text.replace(/[^.!?\n]+[.!?]*/g, sentence => tonySentence(sentence, loucura));
+        }
+
+        function tonySentence(sentence, loucura) {
+            const [, lead, body, punct, trail] = sentence.match(/^(\s*)([\s\S]*?)([.!?]*)(\s*)$/);
+            const tokens = body.split(/(\s+)/);
+            const wordIdx = tokens.map((t, i) => (t && !/^\s+$/.test(t) ? i : -1)).filter(i => i >= 0);
+            const w = wordIdx.length;
+            if (!w) return sentence;
+
+            // 1 garantida + caos que cresce mais rápido que o tamanho da frase
+            const n = Math.min(w, 1 + Math.floor(Math.pow(w / 9, 1.3)));
+            const chosen = shuffle([...wordIdx]).slice(0, n);
+            const last = wordIdx[w - 1];
+
+            for (const k of chosen) {
+                const word = tokens[k];
+                const frag = loucura();
+                if (k === last) {
+                    // Fim da frase: ", loucura" e depois a pontuação original
+                    tokens[k] = word.replace(/[,;:]$/, '') + ', ' + frag;
+                } else if (/[,;:]$/.test(word)) {
+                    tokens[k] = word + ' ' + frag + ',';
+                } else {
+                    tokens[k] = word + ', ' + frag + ',';
+                }
+            }
+            return lead + tokens.join('') + punct + trail;
+        }
+
+        /* ================= Motor de tradução =================
+           Portado do MiGuXeiToR original (Aurelio Jargas, 2007).
+           Level 1: ICQ   - Abreviações entendíveis, pouca ênfase (!!) e poucos erros
+           Level 2: MSN   - Abreviações ilegíveis, muita ênfase (!!!!) e muitos erros
+           Level 3: Orkut - Menos abreviações, CaMeLCaSe e muitos X por toda parte */
+        function miguxar(t, level) {
+            // Números
+            t = t.replace(/\buma?\b/gi, '1');
+            t = t.replace(/\b(dois|duas)\b/gi, '2');
+            t = t.replace(/\btrês\b/gi, '3');
+            t = t.replace(/\bquatro\b/gi, '4');
+            t = t.replace(/\bcinco\b/gi, '5');
+            t = t.replace(/\bseis\b/gi, '6');
+            t = t.replace(/\bsete\b/gi, '7');
+            t = t.replace(/\boito\b/gi, '8');
+            t = t.replace(/\bnove\b/gi, '9');
+            t = t.replace(/\bdez\b/gi, '10');
+            t = t.replace(/\bonze\b/gi, '11');
+            t = t.replace(/\bdoze\b/gi, '12');
+            t = t.replace(/\btreze\b/gi, '13');
+            t = t.replace(/\b(c|qu)atorze\b/gi, '14');
+            t = t.replace(/\bquinze\b/gi, '15');
+            t = t.replace(/\bdezesseis\b/gi, '16');
+            t = t.replace(/\bdezessete\b/gi, '17');
+            t = t.replace(/\bdezoito\b/gi, '18');
+            t = t.replace(/\bdezenove\b/gi, '19');
+            // Repetições
+            t = t.replace(/\b([0-9]+) vez(es)?\b/gi, '$1x');
+            // Horas, minutos
+            t = t.replace(/\b(\d+) horas?\b/gi, '$1h');
+            t = t.replace(/\b(\d+) minutos?\b/gi, '$1min');
+            if (level < 3) {
+                t = t.replace(/\b(\d+) segundos?\b/gi, '$1s');
+            }
+            // Dias da semana
+            t = t.replace(/\bsegunda-feira\b/gi, '2a');
+            t = t.replace(/\bterça-feira\b/gi, '3a');
+            t = t.replace(/\bquarta-feira\b/gi, '4a');
+            t = t.replace(/\bquinta-feira\b/gi, '5a');
+            t = t.replace(/\bsexta-feira\b/gi, '6a');
+            if (level < 3) {
+                // Ordinais
+                t = t.replace(/\bprimeir([ao])\b/gi, '1$1');
+                t = t.replace(/\bsegund([ao])\b/gi, '2$1');
+                t = t.replace(/\bterceir([ao])\b/gi, '3$1');
+                t = t.replace(/\bquart([ao])\b/gi, '4$1');
+                t = t.replace(/\bquint([ao])\b/gi, '5$1');
+                t = t.replace(/\bsext([ao])\b/gi, '6$1');
+                t = t.replace(/\bsétim([ao])\b/gi, '7$1');
+                t = t.replace(/\boitav([ao])\b/gi, '8$1');
+                t = t.replace(/\bnon([ao])\b/gi, '9$1');
+                t = t.replace(/\bdécim([ao])\b/gi, '10$1');
+                // Abreviações não miguxas
+                t = t.replace(/\bfi(m|nal) de semana\b/gi, 'fds');
+            }
+            // Símbolos
+            t = t.replace(/\baté mais\b/gi, 't+');
+            t = t.replace(/\bdemais\b/gi, 'd+');
+            t = t.replace(/\bmais ou menos\b/gi, '+-');
+            t = t.replace(/\bmais\b/gi, '+');
+            t = t.replace(/\bmenos\b/gi, '-');
+            t = t.replace(/\bmei[ao]\b/gi, '1/2');
+            // Abreviações simples
+            t = t.replace(/\bpor\s?qu[eê]/gi, 'pq');
+            t = t.replace(/\bhoje\b/gi, 'hj');
+            t = t.replace(/\btambém\b/gi, 'tb');
+            t = t.replace(/\bbeleza\b/gi, 'blz');
+            t = t.replace(/\bfirmeza\b/gi, 'fmz');
+            t = t.replace(/\bquando\b/gi, 'qdo');
+            t = t.replace(/\bquant([ao])(s?)\b/gi, 'qt$1$2');
+            t = t.replace(/\bmuit([ao])(s?)\b/gi, 'mt$1$2');
+            t = t.replace(/\bbeij(o|ão)\b/gi, 'bj$1');
+            t = t.replace(/\bbeijos\b/gi, 'bjs');
+            if (level == 1) {
+                t = t.replace(/\bcom([^\wáéíóúàâêôãõüç]|$)/gi, 'c/$1');
+            } else if (level == 3) {
+                t = t.replace(/\bcom([^\wáéíóúàâêôãõüç]|$)/gi, 'cum$1');
+            }
+            if (level > 1) {
+                // Abreviações avançadas
+                t = t.replace(/\bmesm[ao](s?)\b/gi, 'msm$1');
+                t = t.replace(/\bdepois\b/gi, 'dpois');
+                t = t.replace(/\bquem\b/gi, 'qm');
+                t = t.replace(/\bcomigo\b/gi, 'cmg');
+                t = t.replace(/\bcadê/gi, 'kd');
+                t = t.replace(/\bqualquer\b/gi, 'qq');
+                t = t.replace(/\bfalou\b/gi, 'flw');
+                t = t.replace(/\bvaleu\b/gi, 'vlw');
+                t = t.replace(/\btchau\b/gi, 'xau');
+            }
+            if (level == 1) {
+                t = t.replace(/\bque\b/gi, 'q');
+                t = t.replace(/\bvocê/gi, 'vc');
+                t = t.replace(/\be-?mail(s?)\b/gi, 'mail$1');
+            } else if (level == 2) {
+                t = t.replace(/\bque\b/gi, 'ke');
+                t = t.replace(/\bvocês\b/gi, '6');
+                t = t.replace(/\bvocê/gi, 'vc');
+            } else {
+                t = t.replace(/\bque\b/gi, 'ki');
+                t = t.replace(/\b(adoro você|te adoro)/gi, 'adoluxê');
+                t = t.replace(/\bamo vocês\b/gi, 'amodolu vocês');
+                t = t.replace(/\b(amo você|te amo)/gi, 'te amodolu');
+                t = t.replace(/\bvocê/gi, 'vuxê');
+            }
+            // Glossário
+            t = t.replace(/\btecl(e|ar|ou|amos)\b/gi, 'tc');
+            t = t.replace(/\binternet\b/gi, 'net');
+            t = t.replace(/\be-?mail(s?)\b/gi, 'meio$1');
+            t = t.replace(/\b(grana|dinheiro)\b/gi, '$$$$$$'); // $$$
+            if (level == 2) {
+                t = t.replace(/\badicion/gi, 'adde');
+                t = t.replace(/\bamig([ao])\b/gi, 'mig$1');
+                t = t.replace(/\blind([ao])\b/gi, 'leend$1');
+                t = t.replace(/\bnovidade(s?)\b/gi, '9dad$1');
+            } else if (level == 3) {
+                t = t.replace(/\badicion[\wáí]+/gi, 'add');
+                t = t.replace(/\bamig([ao]s?)\b/gi, 'migux$1');
+                t = t.replace(/\blind([ao]s?)\b/gi, 'lindux$1');
+                t = t.replace(/\bfof([ao]s?)\b/gi, 'fofux$1');
+                t = t.replace(/\bdormir\b/gi, 'mimir');
+                t = t.replace(/\bnome(s?)\b/gi, 'nominho$1');
+                t = t.replace(/\besposa\b/gi, 'marida');
+                t = t.replace(/\b(de novo|novamente)\b/gi, 'dinovo');
+                t = t.replace(/\b(aliás|por exemplo)\b/gi, 'tipo assim');
+            }
+            // tou, tava, tar
+            t = t.replace(/\best(ar|ou|ava|ive|aria|ão)\b/gi, 't$1');
+            t = t.replace(/\bestá([^\wáéíóúàâêôãõüç]|$)/gi, 'tah$1');
+            // para
+            t = t.replace(/\bpara ([ao]s?)\b/gi, 'pr$1');
+            t = t.replace(/\bpara([^\wáéíóúàâêôãõüç-]|$)/gi, 'pra$1');
+            if (level == 2) {
+                t = t.replace(/\bpr[ao]([^\wáéíóúàâêôãõüç]|$)/gi, 'p$1');
+            }
+            // Simplifica: irmos -> ir, acabou -> cabou
+            t = t.replace(/([aei]r)mos\b/gi, '$1');
+            t = t.replace(/\bacab/gi, 'cab');
+            if (level > 1) {
+                // entaum, naum
+                t = t.replace(/ão\b/gi, 'aum');
+                // andando -> andano
+                t = t.replace(/(\w[aei])ndo\b/gi, '$1no');
+                // tadeenha, foteenha, gateenha
+                t = t.replace(/(\w[crt]ad)([ao])\b/gi, '$1eenh$2');
+                t = t.replace(/foto(s?)\b/gi, 'foteenha$1');
+                t = t.replace(/(\w)tinh([ao])\b/gi, '$1teenh$2');
+                if (level > 2) {
+                    // No Orkut é mais fófi terminar em i
+                    t = t.replace(/\bse\b/gi, 'si');
+                    t = t.replace(/\bde\b/gi, 'di');
+                    t = t.replace(/\bte\b/gi, 'ti');
+                } else {
+                    // No MSN o som da letra vira a palavra
+                    t = t.replace(/\bse\b/gi, 'c');
+                    t = t.replace(/\bde\b/gi, 'd');
+                    t = t.replace(/\bte\b/gi, 't');
+                }
+                // CH, SH e QU não existem
+                t = t.replace(/ch/gi, 'x');
+                t = t.replace(/sh/gi, 'x');
+                t = t.replace(/qu/gi, 'k');
+                // e -> i (alguns casos)
+                t = t.replace(/(\w(ss|[cdgtv]))e(s?)m?\b/gi, '$1i$3');
+                t = t.replace(/\bseg/gi, 'sig');
+                t = t.replace(/\bdes([^s])/gi, 'dis$1');
+            }
+            // ei -> i (deixa -> dexa)
+            t = t.replace(/eix/gi, 'ex');
+            if (level > 1) {
+                t = t.replace(/\bbonit/gi, 'bunit');
+                // e sozinho -> i
+                t = t.replace(/\be\b/gi, 'i');
+                if (level > 2) {
+                    t = t.replace(/ês\b/gi, 'eix');
+                    t = t.replace(/(\w)(ás|az)\b/gi, '$1aix');
+                }
+            }
+            // Acento no final eh moh uoh
+            t = t.replace(/á([^\wáéíóúàâêôãõüç]|$)/gi, 'ah$1');
+            t = t.replace(/é([^\wáéíóúàâêôãõüç]|$)/gi, 'eh$1');
+            t = t.replace(/í([^\wáéíóúàâêôãõüç]|$)/gi, 'ih$1');
+            t = t.replace(/ó([^\wáéíóúàâêôãõüç]|$)/gi, 'oh$1');
+            t = t.replace(/ú([^\wáéíóúàâêôãõüç]|$)/gi, 'uh$1');
+            // Acentuação? Nunca.
+            t = t.replace(/[áàâãä]/gi, 'a');
+            t = t.replace(/[éèêë]/gi, 'e');
+            t = t.replace(/[íìîï]/gi, 'i');
+            t = t.replace(/[óòôõö]/gi, 'o');
+            t = t.replace(/[úùûü]/gi, 'u');
+            if (level == 1) {
+                t = t.replace(/[ç]/gi, 'c');
+            } else {
+                t = t.replace(/[ç]/gi, 'ss');
+            }
+            if (level > 1) {
+                // l$ -> u
+                t = t.replace(/(\w[a-z])l\b/gi, '$1u');
+                // amo -> amu, todo -> todu
+                t = t.replace(/o(s?)\b/gi, 'u$1');
+                t = t.replace(/\b(\d+)u\b/gi, '$1o');
+                // ou -> o
+                if (level == 3) {
+                    t = t.replace(/(\w)ou\b/gi, '$1ow');
+                } else {
+                    t = t.replace(/(\w)ou\b/gi, '$1o');
+                }
+                t = t.replace(/\bou(\w)/gi, 'o$1');
+                t = t.replace(/(\w)ou(\w)/gi, '$1o$2');
+                // ^c -> k
+                t = t.replace(/\bc([^ei\W])/gi, 'k$1');
+                // andar -> andah, comer -> come, sentir -> senti
+                t = t.replace(/ar\b/gi, 'ah');
+                t = t.replace(/er\b/gi, 'e');
+                t = t.replace(/ir\b/gi, 'i');
+                // eira$ -> era
+                t = t.replace(/eira\b/gi, 'era');
+                // casa -> caza
+                t = t.replace(/([^s\W])sa\b/gi, '$1za');
+            }
+            if (level > 2) {
+                // O abominável X no fim das palavras no plural
+                t = t.replace(/([^\Ws])s\b/gi, '$1x');
+                // O abominável H no fim de certas palavras
+                t = t.replace(/(\w)a\b/gi, '$1ah');
+            }
+            // Risada
+            if (level == 1) {
+                t = t.replace(/\b(he|ha|hi|ho|hua){2,}h?\b/gi, 'rsrsrs');
+            } else if (level == 2) {
+                t = t.replace(/\b(he|ha|hi|ho|hua|rs){2,}h?\b/gi, 'huahuahua');
+                t = t.replace(/[8:][-o]?[D)]/g, 'huahuahua');
+            } else {
+                t = t.replace(/\b(he|ha|hi|ho|hua|rs){2,}h?\b/gi, 'kkkkkkkkkkk');
+                t = t.replace(/[8:][-o]?[D)]/g, 'kkkkkkkkkkk');
+            }
+            if (level > 1) {
+                // Pontos são mais legais... vários...
+                t = t.replace(/\./g, '......');
+                t = t.replace(/, /g, '...');
+                t = t.replace(/,(\n|$)/g, '...$1');
+            }
+            // Sejamos enfáticos!!!
+            if (level == 1) {
+                t = t.replace(/!/g, '!!');
+                t = t.replace(/\?/g, '??');
+            } else {
+                t = t.replace(/!/g, '!!!!!');
+                t = t.replace(/\?/g, '??!?!');
+            }
+            if (level < 3) {
+                t = t.toLowerCase();
+            } else {
+                t = camelize(t);
+                t = t.replace(/x/gi, 'xXx');
+                t = t.replace(/ss/gi, 'XX');
+            }
+            return t;
+        }
+
+        /* ================= Interface ================= */
+        const input = document.getElementById('inputText');
+        const output = document.getElementById('outputText');
+        const outPane = document.getElementById('outPane');
+        const dialectLabel = document.getElementById('dialectLabel');
+        const consoleEl = document.querySelector('.console');
+        const copyBtn = document.getElementById('copyBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const count = document.getElementById('count');
+        const toast = document.getElementById('toast');
+        const channels = [...document.querySelectorAll('.channel')];
+
+        let activeLevel = null;
+        let currentText = '';
+        let scrambleId = 0;
+        function translate(level, text) {
+            return level === 'tony' ? tonyMCL(text) : miguxar(text, Number(level));
+        }
+
+        function showState(kind, icon, message) {
+            scrambleId++;
+            currentText = '';
+            output.className = 'output ' + kind;
+            output.innerHTML = '<span class="empty"><i class="ph ' + icon + '"></i></span>';
+            output.firstChild.append(message);
+            copyBtn.disabled = true;
+        }
+
+        function showText(text, animate) {
+            currentText = text;
+            output.className = 'output';
+            copyBtn.disabled = false;
+            const id = ++scrambleId;
+
+            if (!animate || reduceMotion) {
+                output.textContent = text;
+                return;
+            }
+
+            // Efeito de decodificação: o texto "chega" da transmissão
+            const glyphs = 'x#%&*+=<>/\\|01kKXx?!';
+            const duration = Math.min(900, 280 + text.length * 3);
+            const start = performance.now();
+            outPane.classList.remove('decoding');
+            void outPane.offsetWidth;
+            outPane.classList.add('decoding');
+
+            function frame(now) {
+                if (id !== scrambleId) return;
+                const p = Math.min(1, (now - start) / duration);
+                const eased = 1 - Math.pow(1 - p, 3);
+                const shown = Math.floor(eased * text.length);
+                let noise = '';
+                const tail = Math.min(28, text.length - shown);
+                for (let i = 0; i < tail; i++) {
+                    const c = text[shown + i];
+                    noise += (c === '\n' || c === ' ') ? c : glyphs[(Math.random() * glyphs.length) | 0];
+                }
+                output.textContent = text.slice(0, shown) + noise;
+                if (p < 1) requestAnimationFrame(frame);
+                else output.textContent = text;
+            }
+            requestAnimationFrame(frame);
+        }
+
+        function run(level, animate = true) {
+            activeLevel = level;
+            channels.forEach(c => c.setAttribute('aria-pressed', String(c.dataset.level === String(level))));
+            consoleEl.classList.toggle('mode-tony', level === 'tony');
+            dialectLabel.textContent = dialects[level];
+
+            if (!input.value.trim()) {
+                showState('is-error', 'ph-warning', 'ERRO: Insira dados na interface primária, rebelde.');
+                return;
+            }
+            showText(translate(level, input.value), animate);
+        }
+
+        function reset() {
+            activeLevel = null;
+            channels.forEach(c => c.setAttribute('aria-pressed', 'false'));
+            consoleEl.classList.remove('mode-tony');
+            dialectLabel.textContent = '';
+            showState('is-empty', 'ph-broadcast', 'Escolha um dialeto abaixo para decodificar a transmissão.');
+        }
+
+        function updateCount() {
+            const n = input.value.length;
+            count.textContent = n + (n === 1 ? ' caractere' : ' caracteres');        }
+
+        channels.forEach(c => c.addEventListener('click', () => run(c.dataset.level)));
+
+        // Tradução ao vivo enquanto digita, depois de escolher um dialeto
+        let typingTimer;
+        input.addEventListener('input', () => {
+            updateCount();
+            // Tony MCL só sorteia de novo no clique do botão
+            if (!activeLevel || activeLevel === 'tony') return;
+            clearTimeout(typingTimer);
+            typingTimer = setTimeout(() => run(activeLevel, false), 140);
+        });
+
+        // Apaga tudo e começa de novo
+        resetBtn.addEventListener('click', () => {
+            input.value = '';
+            reset();
+            updateCount();
+            input.focus();
+        });
+
+        let toastTimer;
+        copyBtn.addEventListener('click', async () => {
+            if (!currentText) return;
+            try {
+                await navigator.clipboard.writeText(currentText);
+            } catch {
+                const ta = document.createElement('textarea');
+                ta.value = currentText;
+                document.body.append(ta);
+                ta.select();
+                document.execCommand('copy');
+                ta.remove();
+            }
+            toast.classList.add('show');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => toast.classList.remove('show'), 1600);
+        });
+
+        // Atalhos: 1 a 4 escolhem o dialeto (fora da caixa de texto)
+        document.addEventListener('keydown', e => {
+            if (e.target === input || e.ctrlKey || e.metaKey || e.altKey) return;
+            const map = { '1': '1', '2': '2', '3': '3', '4': 'tony' };
+            if (map[e.key]) run(map[e.key]);
+        });
+
+        updateCount();
+    </script>
+</body>
+</html>
