@@ -581,6 +581,24 @@
         .action:disabled { opacity: 0.4; pointer-events: none; }
         .action.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
         .action.primary:hover { background: #cf2c2f; border-color: #cf2c2f; }
+        /* WhatsApp: verde da marca, texto escuro para contraste */
+        .action.zap { background: #25d366; border-color: #25d366; color: #052e16; }
+        .action.zap:hover { background: #1ebe5a; border-color: #1ebe5a; }
+        .action.is-loading i { animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Player do áudio gerado, embaixo da caixa da direita */
+        .audio-bar {
+            padding: 10px 12px;
+            border-top: 1px solid var(--line);
+        }
+        .audio-bar[hidden] { display: none; }
+        .audio-bar audio {
+            display: block;
+            width: 100%;
+            height: 40px;
+            color-scheme: dark;
+        }
         @media (max-width: 520px) {
             .actions { display: grid; grid-template-columns: 1fr 1fr; }
             .action { padding: 0 10px; font-size: 13px; }
@@ -727,6 +745,9 @@
                                 <span class="empty"><i class="ph ph-broadcast"></i>Escolha um dialeto abaixo para decodificar a transmissão.</span>
                             </div>
                         </div>
+                        <div class="audio-bar" id="audioBar" hidden>
+                            <audio id="player" controls preload="auto"></audio>
+                        </div>
                     </div>
                 </div>
 
@@ -769,15 +790,14 @@
 
             <div class="actions rise" style="--i:4">
                 <button class="action" id="resetBtn" type="button"><i class="ph ph-arrow-counter-clockwise"></i>Apagar tudo</button>
+                <button class="action" id="audioBtn" type="button" disabled><i class="ph ph-speaker-high"></i><span>Gerar áudio</span></button>
+                <button class="action zap" id="zapTextBtn" type="button" disabled><i class="ph ph-whatsapp-logo"></i>Texto no Zap</button>
+                <button class="action zap" id="zapAudioBtn" type="button" disabled><i class="ph ph-whatsapp-logo"></i>Áudio no Zap</button>
                 <button class="action primary" id="copyBtn" type="button" disabled><i class="ph ph-copy"></i>Copiar tradução</button>
             </div>
         </main>
 
         <footer>
-            <p>
-                Baseado no <a href="https://aurelio.net/coisinha/miguxeitor">MiGuXeiToR © ® ™</a> original,
-                criado por <a href="https://aurelio.net">Aurelio Jargas</a> em 2007.
-            </p>
             <span class="wordmark">Imperial Edition</span>
         </footer>
     </div>
@@ -799,7 +819,7 @@
         </div>
     </div>
 
-    <div class="toast" id="toast" role="status"><i class="ph ph-check-circle"></i><span>Copiado</span></div>
+    <div class="toast" id="toast" role="status"><i class="ph ph-check-circle"></i><span id="toastMsg">Copiado</span></div>
 
     <script>
         const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1241,7 +1261,18 @@
         const resetBtn = document.getElementById('resetBtn');
         const count = document.getElementById('count');
         const toast = document.getElementById('toast');
+        const toastMsg = document.getElementById('toastMsg');
+        const audioBtn = document.getElementById('audioBtn');
+        const zapTextBtn = document.getElementById('zapTextBtn');
+        const zapAudioBtn = document.getElementById('zapAudioBtn');
+        const audioBar = document.getElementById('audioBar');
+        const player = document.getElementById('player');
         const channels = [...document.querySelectorAll('.channel')];
+
+        // Voz gerada pela API do TonyZator (ElevenLabs), cópia na conta sabor-uvas. Limite de 500 caracteres por áudio.
+        const TTS_URL = 'https://tonyzator-voz.netlify.app/api/tts';
+        const TTS_MAX = 500;
+        let currentAudio = null; // { url, file, text }
 
         let activeLevel = null;
         let currentText = '';
@@ -1257,12 +1288,16 @@
             output.innerHTML = '<span class="empty"><i class="ph ' + icon + '"></i></span>';
             output.firstChild.append(message);
             copyBtn.disabled = true;
+            clearAudio();
         }
 
         function showText(text, animate) {
             currentText = text;
             output.className = 'output';
             copyBtn.disabled = false;
+            // O áudio antigo não vale mais para um texto novo
+            if (currentAudio && currentAudio.text !== text) clearAudio();
+            updateShareButtons();
             const id = ++scrambleId;
 
             if (!animate || reduceMotion) {
@@ -1347,6 +1382,92 @@
         });
 
         let toastTimer;
+        function showToast(message) {
+            toastMsg.textContent = message;
+            toast.classList.add('show');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => toast.classList.remove('show'), 2600);
+        }
+
+        /* ---------- Áudio ---------- */
+        function updateShareButtons() {
+            audioBtn.disabled = !currentText || audioBtn.classList.contains('is-loading');
+            zapTextBtn.disabled = !currentText;
+            zapAudioBtn.disabled = !currentAudio;
+        }
+
+        function clearAudio() {
+            if (currentAudio) URL.revokeObjectURL(currentAudio.url);
+            currentAudio = null;
+            player.pause();
+            player.removeAttribute('src');
+            audioBar.hidden = true;
+            updateShareButtons();
+        }
+
+        async function generateAudio() {
+            const text = currentText.trim();
+            if (!text) return;
+            if (text.length > TTS_MAX) {
+                showToast(`O áudio aceita até ${TTS_MAX} caracteres. Esse texto tem ${text.length}.`);
+                return;
+            }
+            const label = audioBtn.querySelector('span');
+            audioBtn.classList.add('is-loading');
+            audioBtn.querySelector('i').className = 'ph ph-circle-notch';
+            label.textContent = 'Gerando...';
+            updateShareButtons();
+            try {
+                const res = await fetch(TTS_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text })
+                });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok || !data.audio) throw new Error(data.error || 'Não deu para gerar o áudio.');
+                const bytes = Uint8Array.from(atob(data.audio), c => c.charCodeAt(0));
+                const file = new File([bytes], 'tonyzes.mp3', { type: 'audio/mpeg' });
+                clearAudio();
+                currentAudio = { url: URL.createObjectURL(file), file, text: currentText };
+                player.src = currentAudio.url;
+                audioBar.hidden = false;
+                player.play().catch(() => {});
+            } catch (err) {
+                // fetch falha sem mensagem quando a API está fora do ar ou bloqueia o site
+                showToast(err instanceof TypeError ? 'Não deu para falar com o gerador de áudio agora.' : err.message);
+            } finally {
+                audioBtn.classList.remove('is-loading');
+                audioBtn.querySelector('i').className = 'ph ph-speaker-high';
+                label.textContent = 'Gerar áudio';
+                updateShareButtons();
+            }
+        }
+        audioBtn.addEventListener('click', generateAudio);
+
+        /* ---------- WhatsApp ---------- */
+        zapTextBtn.addEventListener('click', () => {
+            if (!currentText) return;
+            window.open('https://wa.me/?text=' + encodeURIComponent(currentText), '_blank', 'noopener');
+        });
+
+        zapAudioBtn.addEventListener('click', async () => {
+            if (!currentAudio) return;
+            const { file } = currentAudio;
+            // Celular: abre a folha de compartilhar do sistema, com o WhatsApp na lista
+            if (navigator.canShare?.({ files: [file] })) {
+                try { await navigator.share({ files: [file], title: 'Tonyzês' }); }
+                catch (err) { if (err.name !== 'AbortError') showToast('Não deu para compartilhar.'); }
+                return;
+            }
+            // Computador: baixa o MP3 e abre o WhatsApp Web para anexar
+            const a = document.createElement('a');
+            a.href = currentAudio.url;
+            a.download = file.name;
+            a.click();
+            showToast('Áudio baixado! Anexa ele na conversa do WhatsApp.');
+            window.open('https://web.whatsapp.com/', '_blank', 'noopener');
+        });
+
         copyBtn.addEventListener('click', async () => {
             if (!currentText) return;
             try {
@@ -1359,9 +1480,7 @@
                 document.execCommand('copy');
                 ta.remove();
             }
-            toast.classList.add('show');
-            clearTimeout(toastTimer);
-            toastTimer = setTimeout(() => toast.classList.remove('show'), 1600);
+            showToast('Copiado');
         });
 
         // Atalhos: 1 a 4 escolhem o dialeto (fora da caixa de texto)
