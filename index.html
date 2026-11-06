@@ -1101,10 +1101,12 @@
 
             // Cada frase termina em . ! ? (ou no fim da linha); quebras de linha ficam intactas
             const injected = text.replace(/[^.!?\n]+[.!?]*/g, sentence => tonySentence(sentence, loucura));
-            return tonyLinhas(injected);
+            // O Tony só usa maiúscula na primeira palavra do texto; o resto sai tudo minúsculo
+            const lower = tonyLinhas(injected).toLowerCase();
+            return lower.replace(/^(\s*)(\S)/, (m, sp, c) => sp + c.toUpperCase());
         }
 
-        // O Tony fala poucas palavras por linha: 1 a 3 palavras, cada linha começando com maiúscula.
+        // O Tony fala poucas palavras por linha: 1 a 3 palavras por linha.
         // Linhas em branco do texto original (parágrafos) continuam no lugar.
         function tonyLinhas(text) {
             return text.split('\n').map(line => {
@@ -1117,7 +1119,7 @@
                     const fim = words.findIndex(w => /[.!?]$/.test(w));
                     if (fim >= 0 && fim < n) n = fim + 1;
                     const chunk = words.splice(0, n).join(' ');
-                    out.push(chunk.charAt(0).toUpperCase() + chunk.slice(1));
+                    out.push(chunk);
                 }
                 return out.join('\n');
             }).join('\n');
@@ -1455,7 +1457,9 @@
             // "Aiw, " no começo da frase e ", retardado" no fim
             t = t.replace(/(^|[.!?]\s+|\n)aiw,?\s+(\S)/gi, (m, pre, c) => pre + c.toUpperCase());
             t = t.replace(/,?\s*retardado(?=\s*(?:[.!?]|$|\n))/gim, '');
-            return t;
+            // O Tony escreve tudo em minúscula: devolve a maiúscula no começo de cada frase
+            // (nomes próprios no meio da frase não têm como voltar)
+            return capitalizarFrases(t);
         }
 
         // Palavras inteiras (antes das regras de sufixo). Ordem importa.
