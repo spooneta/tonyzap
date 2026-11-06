@@ -484,8 +484,8 @@
             grid-column: 1 / -1;
             position: relative;
             display: grid;
-            grid-template-columns: 1fr auto;
-            grid-template-areas: "tony tony" "tts tools";
+            grid-template-columns: 1fr;
+            grid-template-areas: "tony" "tts";
             border-bottom: 1px solid var(--line);
             background: linear-gradient(180deg, rgba(47, 210, 122, 0.06), rgba(47, 210, 122, 0.16));
             overflow: hidden;
@@ -518,17 +518,12 @@
         .channel.tts.is-loading .glyph i { animation: spin 1s linear infinite; }
 
         .bar-tools {
-            grid-area: tools;
-            position: relative;
+            position: absolute;
+            top: 10px;
+            right: 12px;
             z-index: 2;
             display: flex;
             align-items: center;
-            gap: 8px;
-            padding: 0 18px 0 0;
-            border-top: 1px solid rgba(47, 210, 122, 0.25);
-        }
-        @media (min-width: 768px) {
-            .bar-tools { position: absolute; top: 10px; right: 12px; padding: 0; border-top: 0; }
         }
         .bar-tools kbd {
             display: none;
@@ -676,8 +671,8 @@
         }
         @media (max-width: 520px) {
             .actions { display: grid; grid-template-columns: 1fr 1fr; }
-            /* celular: os dois botões do Zap lado a lado, Apagar tudo embaixo na largura toda */
-            #resetBtn { order: 1; grid-column: 1 / -1; }
+            /* celular: Zap lado a lado em cima; Copiar e Apagar tudo embaixo */
+            #resetBtn { order: 1; }
             .action { padding: 0 10px; font-size: 13px; }
         }
 
@@ -850,7 +845,6 @@
                             <span class="era">Fale igual um nóia</span>
                         </button>
                         <div class="bar-tools">
-                            <button class="bar-copy" id="copyBtn" type="button" disabled><i class="ph ph-copy"></i><span class="long">Copiar tradução</span><span class="short">Copiar</span></button>
                             <kbd>4</kbd>
                         </div>
                     </div>
@@ -879,6 +873,7 @@
                 <button class="action" id="resetBtn" type="button"><i class="ph ph-arrow-counter-clockwise"></i>Apagar tudo</button>
                 <button class="action zap" id="zapTextBtn" type="button" disabled><i class="ph ph-whatsapp-logo"></i>Texto no Zap</button>
                 <button class="action zap" id="zapAudioBtn" type="button" disabled><i class="ph ph-whatsapp-logo"></i>Áudio no Zap</button>
+                <button class="action primary" id="copyBtn" type="button" disabled><i class="ph ph-copy"></i>Copiar tradução</button>
             </div>
         </main>
 
