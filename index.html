@@ -221,6 +221,37 @@
             font-size: clamp(0.95rem, 1.6vw, 1.125rem);
         }
 
+        /* ---------- Alternador de fluxo (modo reverso) ---------- */
+        .flow {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+            gap: 8px 12px;
+            margin: 0 0 12px;
+        }
+        .flow-hint { font-size: 12px; color: var(--text-3); }
+        .flow-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            height: 38px;
+            padding: 0 14px;
+            border: 1px solid var(--line-strong);
+            border-radius: var(--radius);
+            background: rgba(14, 14, 18, 0.8);
+            color: var(--text);
+            font: 500 13px var(--font);
+            cursor: pointer;
+            transition: border-color .2s var(--ease), background-color .2s var(--ease), transform .15s var(--ease);
+        }
+        .flow-toggle i { font-size: 16px; color: var(--accent); transition: transform .4s var(--ease); }
+        .flow-toggle:hover { border-color: var(--accent-line); }
+        .flow-toggle:active { transform: scale(0.98); }
+        .flow-toggle[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
+        .flow-toggle[aria-pressed="true"] i { transform: rotate(180deg); }
+        .flow-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
         /* ---------- Console ---------- */
         .console {
             position: relative;
@@ -790,12 +821,21 @@
         </header>
 
         <main>
+            <div class="flow rise" style="--i:3">
+                <button class="flow-toggle" id="flowBtn" type="button" aria-pressed="false" title="Inverter a direção da tradução">
+                    <span class="flow-from" id="flowFrom">Português</span>
+                    <i class="ph ph-arrows-left-right"></i>
+                    <span class="flow-to" id="flowTo">Dialeto</span>
+                </button>
+                <span class="flow-hint" id="flowHint">Modo reverso desligado</span>
+            </div>
+
             <section class="console rise" style="--i:3" aria-label="Tradutor">
 
                 <div class="panes">
                     <div class="pane pane-in">
                         <div class="pane-head">
-                            <label class="pane-title" for="inputText">Português</label>
+                            <label class="pane-title" for="inputText" id="inTitle">Português</label>
                             <div class="tools">
                                 <span class="count" id="count">0</span>
                             </div>
@@ -1331,6 +1371,143 @@
             return t;
         }
 
+        /* ================= Modo reverso =================
+           Tenta voltar do dialeto para o português. É aproximado: o miguxês
+           perde acentos, ç, maiúsculas e números por extenso, então a volta
+           usa um dicionário e regras por dialeto. No Tony MCL a volta é exata:
+           as loucuras são frases conhecidas e saem inteiras. */
+
+        const escapeRe = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+        // Remove as loucuras do Tony (inclusive o jackpot) e arruma a pontuação que sobra
+        function desTony(t) {
+            const frags = Object.values(tonyBank).flat();
+            const variants = new Set();
+            for (const f of frags) {
+                variants.add(f);
+                variants.add(f.replace(/^(e|detalhe:)\s+/i, ''));
+            }
+            const alt = [...variants].sort((a, b) => b.length - a.length).map(escapeRe).join('|');
+            const combo = `(?:${alt})(?:,\\s*além disso\\s+(?:${alt})\\s+e\\s+(?:${alt}))?`;
+            // ", loucura," no meio some inteira; ", loucura" antes da pontuação também
+            t = t.replace(new RegExp(`,\\s*${combo}\\s*,`, 'gi'), '');
+            t = t.replace(new RegExp(`,?\\s*${combo}(?=\\s*(?:[.!?]|$|\\n))`, 'gim'), '');
+            t = t.replace(new RegExp(`\\s*${combo},?`, 'gi'), '');
+            return t;
+        }
+
+        // Palavras inteiras (antes das regras de sufixo). Ordem importa.
+        const REVERSO_PALAVRAS = [
+            ['vc', 'você'], ['vcs', 'vocês'], ['vuxe', 'você'], ['vuxê', 'você'],
+            ['pq', 'porque'], ['tb', 'também'], ['tbm', 'também'], ['hj', 'hoje'],
+            ['blz', 'beleza'], ['fmz', 'firmeza'], ['qdo', 'quando'], ['qd', 'quando'],
+            ['qto', 'quanto'], ['qta', 'quanta'], ['qtos', 'quantos'], ['qtas', 'quantas'],
+            ['mto', 'muito'], ['mta', 'muita'], ['mtos', 'muitos'], ['mtas', 'muitas'],
+            ['mtu', 'muito'], ['mtus', 'muitos'], ['qtu', 'quanto'], ['qtus', 'quantos'],
+            ['bjo', 'beijo'], ['bju', 'beijo'], ['bjs', 'beijos'], ['bjão', 'beijão'], ['bjaum', 'beijão'],
+            ['msm', 'mesmo'], ['msma', 'mesma'], ['dpois', 'depois'], ['qm', 'quem'],
+            ['cmg', 'comigo'], ['kmg', 'comigo'], ['kd', 'cadê'], ['qq', 'qualquer'], ['flw', 'falou'],
+            ['vlw', 'valeu'], ['xau', 'tchau'], ['fds', 'fim de semana'], ['tc', 'teclar'],
+            ['net', 'internet'], ['meio', 'e-mail'], ['meios', 'e-mails'], ['mail', 'e-mail'],
+            ['q', 'que'], ['ke', 'que'], ['ki', 'que'], ['c/', 'com'], ['cum', 'com'], ['kom', 'com'],
+            ['tah', 'está'], ['ta', 'tá'], ['to', 'tô'], ['tou', 'tô'], ['tava', 'estava'],
+            ['eh', 'é'], ['naum', 'não'], ['nao', 'não'], ['entaum', 'então'], ['entao', 'então'],
+            ['adoluxe', 'adoro você'], ['adoluxê', 'adoro você'], ['amodolu', 'amo'],
+            ['mimir', 'dormir'], ['dinovo', 'de novo'], ['marida', 'esposa'],
+            ['add', 'adicionar'], ['addeando', 'adicionando'],
+            ['huahuahua', 'haha'], ['rsrsrs', 'haha'], ['rs', 'haha'],
+            ['voce', 'você'], ['voces', 'vocês'], ['tambem', 'também'], ['ja', 'já'], ['so', 'só'],
+            ['eu', 'eu']
+        ];
+        // Palavras que só valem para um dialeto (o mesmo símbolo significa outra coisa nos outros)
+        const REVERSO_POR_NIVEL = {
+            1: [],
+            2: [['6', 'vocês'], ['d', 'de'], ['c', 'se'], ['t', 'te'], ['p', 'para'], ['i', 'e'], ['u', 'o'], ['us', 'os']],
+            3: [['si', 'se'], ['di', 'de'], ['ti', 'te'], ['i', 'e'], ['u', 'o'], ['us', 'os']]
+        };
+
+        function trocarPalavras(t, pares) {
+            for (const [de, para] of pares) {
+                const re = new RegExp(`(^|[^\\wÀ-ÿ/])${escapeRe(de)}(?=$|[^\\wÀ-ÿ/])`, 'gi');
+                t = t.replace(re, (m, pre) => pre + para);
+            }
+            return t;
+        }
+
+        function capitalizarFrases(t) {
+            t = t.replace(/^(\s*[-–]?\s*)([a-zà-ÿ])/gm, (m, a, b) => a + b.toUpperCase());
+            return t.replace(/([.!?]\s+)([a-zà-ÿ])/g, (m, a, b) => a + b.toUpperCase());
+        }
+
+        function desmiguxar(t, level) {
+            if (level === 'tony') return desTony(t);
+            const n = Number(level);
+
+            if (n === 3) {
+                // desfaz o CaMeLcAsE e os enfeites
+                t = t.toLowerCase();
+                t = t.replace(/xxx/g, 'x').replace(/xx/g, 'ss');
+            } else {
+                t = t.toLowerCase();
+            }
+
+            // Pontuação exagerada
+            t = t.replace(/(\?!?)+\?*!*/g, '?').replace(/!{2,}/g, '!');
+            if (n > 1) {
+                t = t.replace(/\.{6,}/g, '.');
+                t = t.replace(/\.{3,5}(?=\S)/g, ', ').replace(/\.{3,5}/g, ',');
+            }
+
+            // Risadas e símbolos
+            t = t.replace(/\bk{4,}\b/g, 'haha');
+            t = t.replace(/(^|\s)t\+(?=\s|$|[.,!?])/g, '$1até mais');
+            t = t.replace(/(^|\s)d\+(?=\s|$|[.,!?])/g, '$1demais');
+            t = t.replace(/(^|\s)\+-(?=\s|$|[.,!?])/g, '$1mais ou menos');
+            t = t.replace(/(^|\s)\+(?=\s|$|[.,!?])/g, '$1mais');
+            t = t.replace(/(^|\s)1\/2(?=\s|$|[.,!?])/g, '$1meio');
+            t = t.replace(/\b(\d+)x\b/g, '$1 vezes');
+            t = t.replace(/\b(\d+)h\b/g, '$1 horas').replace(/\b(\d+)min\b/g, '$1 minutos');
+
+            if (n === 3) {
+                t = t.replace(/(\w*[a-wyz])x\b/g, '$1s'); // plural com X: bjx -> bjs
+            }
+            if (n > 1) {
+                // amu -> amo, tudu -> tudo (só depois de consoante, para não mexer em "seu", "meu")
+                t = t.replace(/(\w*[bcdfgjlmnpqrstvxz])u(s?)\b/g, '$1o$2');
+                t = t.replace(/(\w)iu\b/g, '$1io'); // veiu -> veio
+                // Sufixos e trocas do MSN/Orkut (antes do dicionário)
+                t = t.replace(/aum\b/g, 'ão');
+                t = t.replace(/eenh([ao]s?)\b/g, 'inh$1');
+                t = t.replace(/foteenha(s?)\b/g, 'foto$1');
+                t = t.replace(/\bmigux([ao]s?)\b/g, 'amig$1').replace(/\bmig([ao]s?)\b/g, 'amig$1');
+                t = t.replace(/\blindux([ao]s?)\b/g, 'lind$1').replace(/\bleend([ao]s?)\b/g, 'lind$1');
+                t = t.replace(/\bfofux([ao]s?)\b/g, 'fof$1');
+                t = t.replace(/\bnominho(s?)\b/g, 'nome$1');
+                t = t.replace(/\b9dad(e?s?)\b/g, 'novidade$1').replace(/\badde/g, 'adicion');
+                t = t.replace(/\bbunit/g, 'bonit');
+                t = t.replace(/\bk(?=[aou])/g, 'c');
+            }
+            if (n === 3) {
+                t = t.replace(/ow\b/g, 'ou');
+                t = t.replace(/eix\b/g, 'ês').replace(/(\w)aix\b/g, '$1ás');
+                t = t.replace(/(\w{2,})ah\b/g, '$1a');
+            }
+
+            t = trocarPalavras(t, REVERSO_POR_NIVEL[n] || []);
+            t = trocarPalavras(t, REVERSO_PALAVRAS);
+
+            if (n === 2) {
+                // no MSN os verbos em -ar viraram -ah
+                t = t.replace(/(\w{2,})ah\b/g, '$1ar');
+            }
+            if (n > 1) {
+                t = t.replace(/\bk(?=[ei])/g, 'qu'); // keru -> quero
+                t = t.replace(/(\w(?:ss|[cdgtv]))i(s?)\b/g, '$1e$2'); // saudadi -> saudade, genti -> gente
+            }
+
+            return capitalizarFrases(t);
+        }
+
         /* ================= Interface ================= */
         const input = document.getElementById('inputText');
         const output = document.getElementById('outputText');
@@ -1357,8 +1534,21 @@
         let activeLevel = null;
         let currentText = '';
         let scrambleId = 0;
+        let reverse = false; // false: português -> dialeto; true: dialeto -> português
         function translate(level, text) {
+            if (reverse) return desmiguxar(text, level);
             return level === 'tony' ? tonyMCL(text) : miguxar(text, Number(level));
+        }
+
+        // Títulos das caixas e do topo conforme direção e dialeto
+        function updateTitles(level) {
+            const dialeto = level === 'tony' || level == null ? 'Tonyzês' : 'Miguxês';
+            document.getElementById('inTitle').textContent = reverse ? dialeto : 'Português';
+            document.getElementById('outTitle').textContent = reverse ? 'Português' : dialeto;
+            document.getElementById('brandName').textContent = level == null || level === 'tony' ? 'Tonyzês' : 'MiGuXeiToR';
+            input.placeholder = reverse
+                ? 'Cole aqui o texto no dialeto e aperte um botão.'
+                : 'Digite aqui seu texto e aperte um botão.';
         }
 
         function showState(kind, icon, message) {
@@ -1416,9 +1606,7 @@
             channels.forEach(c => c.setAttribute('aria-pressed', String(c.dataset.level === String(level))));
             consoleEl.classList.toggle('mode-tony', level === 'tony');
             dialectLabel.textContent = dialects[level];
-            // Título da caixa: Tonyzês para o Tony, Miguxês para os outros dialetos
-            document.getElementById('outTitle').textContent = level === 'tony' ? 'Tonyzês' : 'Miguxês';
-            document.getElementById('brandName').textContent = level === 'tony' ? 'Tonyzês' : 'MiGuXeiToR';
+            updateTitles(level);
 
             if (!input.value.trim()) {
                 showState('is-error', 'ph-warning', 'ERRO: Insira dados na interface primária, rebelde.');
@@ -1432,8 +1620,7 @@
             channels.forEach(c => c.setAttribute('aria-pressed', 'false'));
             consoleEl.classList.remove('mode-tony');
             dialectLabel.textContent = '';
-            document.getElementById('outTitle').textContent = 'Tonyzês';
-            document.getElementById('brandName').textContent = 'Tonyzês';
+            updateTitles(null);
             showState('is-empty', 'ph-broadcast', 'Escolha um dialeto abaixo para decodificar a transmissão.');
         }
 
@@ -1448,9 +1635,26 @@
         input.addEventListener('input', () => {
             updateCount();
             // Tony MCL só sorteia de novo no clique do botão
-            if (!activeLevel || activeLevel === 'tony') return;
+            // (no modo reverso o Tony é determinístico, então pode traduzir ao vivo)
+            if (!activeLevel || (activeLevel === 'tony' && !reverse)) return;
             clearTimeout(typingTimer);
             typingTimer = setTimeout(() => run(activeLevel, false), 140);
+        });
+
+        // Modo reverso: inverte a direção. Se já há tradução, ela vai para a caixa da esquerda.
+        const flowBtn = document.getElementById('flowBtn');
+        flowBtn.addEventListener('click', () => {
+            reverse = !reverse;
+            flowBtn.setAttribute('aria-pressed', String(reverse));
+            document.getElementById('flowFrom').textContent = reverse ? 'Dialeto' : 'Português';
+            document.getElementById('flowTo').textContent = reverse ? 'Português' : 'Dialeto';
+            document.getElementById('flowHint').textContent = reverse ? 'Modo reverso ligado' : 'Modo reverso desligado';
+            if (currentText) {
+                input.value = currentText;
+                updateCount();
+            }
+            if (activeLevel && input.value.trim()) run(activeLevel);
+            else updateTitles(activeLevel);
         });
 
         // Apaga tudo e começa de novo
