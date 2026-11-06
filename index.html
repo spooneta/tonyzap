@@ -1100,7 +1100,24 @@
             }
 
             // Cada frase termina em . ! ? (ou no fim da linha); quebras de linha ficam intactas
-            return text.replace(/[^.!?\n]+[.!?]*/g, sentence => tonySentence(sentence, loucura));
+            const injected = text.replace(/[^.!?\n]+[.!?]*/g, sentence => tonySentence(sentence, loucura));
+            return tonyLinhas(injected);
+        }
+
+        // O Tony fala poucas palavras por linha: 1 a 3 palavras, cada linha começando com maiúscula.
+        // Linhas em branco do texto original (parágrafos) continuam no lugar.
+        function tonyLinhas(text) {
+            return text.split('\n').map(line => {
+                const words = line.split(/\s+/).filter(Boolean);
+                const out = [];
+                while (words.length) {
+                    const r = Math.random();
+                    const n = r < 0.3 ? 1 : r < 0.8 ? 2 : 3;
+                    const chunk = words.splice(0, n).join(' ');
+                    out.push(chunk.charAt(0).toUpperCase() + chunk.slice(1));
+                }
+                return out.join('\n');
+            }).join('\n');
         }
 
         function tonySentence(sentence, loucura) {
@@ -1400,6 +1417,16 @@
 
         // Remove as loucuras do Tony (inclusive o jackpot) e arruma a pontuação que sobra
         function desTony(t) {
+            // Junta as linhas curtas do Tony de volta numa frase só. A maiúscula do começo
+            // de cada linha vira minúscula, a não ser depois de ponto final, ! ou ?.
+            // Linhas em branco (parágrafos) ficam.
+            t = t.split('\n').reduce((acc, line, i, all) => {
+                if (i === 0) return line;
+                const prev = all[i - 1];
+                if (!line.trim() || !prev.trim()) return acc + '\n' + line;
+                const keep = /[.!?]\s*$/.test(prev);
+                return acc + ' ' + (keep ? line : line.charAt(0).toLowerCase() + line.slice(1));
+            }, '');
             const frags = Object.values(tonyBank).flat();
             const variants = new Set();
             for (const f of frags) {
